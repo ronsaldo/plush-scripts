@@ -44,6 +44,7 @@ def extractPathPositions(path):
     positions = []
     i = 0
     currentPosition = Vector2()
+    subpathStartPosition = Vector2()
     while i < len(components):
         newAction = components[i]
         if newAction.isalpha():
@@ -51,17 +52,22 @@ def extractPathPositions(path):
             i += 1
 
         if action in ('M', 'L'):
-            action = 'l'
             currentPosition = Vector2(float(components[i]), float(components[i+1]))
             positions.append(currentPosition)
             i += 2
+            if action == 'M':
+                subpathStartPosition = currentPosition
+            action = 'L'
         elif action in ('m', 'l'):
-            action = 'l'
-            currentPosition += Vector2(float(components[i]), float(components[i+1]))
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
             positions.append(currentPosition)
             i += 2
+            if action == 'm':
+                subpathStartPosition = currentPosition
+            action = 'l'
         elif action in ('Z', 'z'):
-            pass
+            # This is important for relative movements.
+            currentPosition = subpathStartPosition
         else:
             print components
             assert False
@@ -343,6 +349,11 @@ class Document(Node):
         layerWidth = bbox.getWidth()
         self.scale = targetWidth / (layerWidth * PIXELS)
 
+    def scaleLayerHeight(self, layerName, targetHeight):
+        layer = self.layerDict.get(layerName)
+        bbox = layer.getBoundingBox()
+        layerHeight = bbox.getHeight()
+        self.scale = targetHeight / (layerHeight * PIXELS)
 
     def transformLayers(self):
         print 'Computed scale factor', self.scale
@@ -359,6 +370,7 @@ class Program:
         self.inputFileName = None
         self.scaleLayer = None
         self.scaleLayerWidth = None
+        self.scaleLayerHeight = None
         self.outDir = '.'
 
     def parseCommandLine(self):
@@ -375,6 +387,9 @@ class Program:
             elif arg == '-scale-width':
                 i += 1
                 self.scaleLayerWidth = float(sys.argv[i])
+            elif arg == '-scale-height':
+                i += 1
+                self.scaleLayerHeight = float(sys.argv[i])
             else:
                 self.inputFileName = arg
 
@@ -395,6 +410,8 @@ class Program:
         # Compute the layer scale.
         if self.scaleLayer is not None and self.scaleLayerWidth is not None:
             document.scaleLayerWidth(self.scaleLayer, self.scaleLayerWidth)
+        if self.scaleLayer is not None and self.scaleLayerHeight is not None:
+            document.scaleLayerHeight(self.scaleLayer, self.scaleLayerHeight)
 
         # Transform the layers
         document.transformLayers()
