@@ -31,7 +31,11 @@ PAGE_MARGIN = 5
 JOIN_MARGIN = 5
 
 # Units
+UNIT_SCALE = 1.0
 PIXELS = 1.0/3.543307
+MM = 3.543307
+CM = 10.0*MM
+M = 1000.0*MM
 
 def tagName(tag, namespace):
     return '{%s}%s' % (namespace, tag)
@@ -68,6 +72,40 @@ def extractPathPositions(path):
         elif action in ('Z', 'z'):
             # This is important for relative movements.
             currentPosition = subpathStartPosition
+        elif action == 'Q':
+            currentPosition = Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+        elif action == 'C':
+            currentPosition = Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+        elif action == 'q':
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+        elif action == 'c':
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
+            currentPosition = currentPosition + Vector2(float(components[i]), float(components[i+1]))
+            positions.append(currentPosition)
+            i += 2
         else:
             print components
             assert False
@@ -358,7 +396,7 @@ class Document(Node):
     def transformLayers(self):
         print 'Computed scale factor', self.scale
         for layer in self.layers:
-            layer.transformScale(self.scale)
+            layer.transformScale(self.scale * UNIT_SCALE)
 
     def exportLayers(self, outDir):
         for layer in self.layers:
@@ -374,6 +412,7 @@ class Program:
         self.outDir = '.'
 
     def parseCommandLine(self):
+        global UNIT_SCALE
         i = 1
         while i < len(sys.argv):
             arg = sys.argv[i]
@@ -390,6 +429,14 @@ class Program:
             elif arg == '-scale-height':
                 i += 1
                 self.scaleLayerHeight = float(sys.argv[i])
+            elif arg == '-mm':
+                UNIT_SCALE = MM
+            elif arg == '-px':
+                UNIT_SCALE = 1.0
+            elif arg == '-cm':
+                UNIT_SCALE = CM
+            elif arg == '-m':
+                UNIT_SCALE = M
             else:
                 self.inputFileName = arg
 
