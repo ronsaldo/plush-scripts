@@ -413,6 +413,7 @@ class Program:
 
     def parseCommandLine(self):
         global UNIT_SCALE
+        global PAGE_WIDTH, PAGE_HEIGHT
         i = 1
         while i < len(sys.argv):
             arg = sys.argv[i]
@@ -437,6 +438,19 @@ class Program:
                 UNIT_SCALE = CM
             elif arg == '-m':
                 UNIT_SCALE = M
+            elif arg == '-a4':
+                PAGE_WIDTH = A4_WIDTH
+                PAGE_HEIGHT = A4_HEIGHT
+            elif arg == '-us-letter':
+                PAGE_WIDTH = US_LETTER_WIDTH
+                PAGE_HEIGHT = US_LETTER_HEIGHT
+            elif arg == '-chile-legal':
+                PAGE_WIDTH = CHILE_LEGAL_WIDTH
+                PAGE_HEIGHT = CHILE_LEGAL_HEIGHT
+            elif arg == '-usable-scale':
+                i += 1
+                PAGE_WIDTH *= float(sys.argv[i])
+                PAGE_HEIGHT *= float(sys.argv[i])
             else:
                 self.inputFileName = arg
 
